@@ -10,4 +10,4 @@ foreach ($Object in $Objects) {
     }
 }
 
-Start-Process $LocalPath\
+Start-Process $LocalPath\$LocalFileName

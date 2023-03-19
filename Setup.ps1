@@ -132,6 +132,16 @@ if($shouldInstallVBCable -imatch "y")
     Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_x64.exe -Wait
 }
 
+if($shouldInstallViGEm)
+{
+    (New-Object System.Net.WebClient).DownloadFile("https://github.com/ViGEm/ViGEmBus/releases/download/v1.21.442.0/ViGEmBus_1.21.442_x64_x86_arm64.exe", "$WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe")
+    Start-Process $WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe -ArgumentList "/extract ViGEmBus" -Wait
+    Start-Process $WorkingDir\Downloads\5215C05\nefconw.exe -ArgumentList "-remove-device-node --hardware-id Nefarius\ViGEmBus\Gen1 --class-guid 4D36E97D-E325-11CE-BFC1-08002BE10318" -Wait
+    Start-Process $WorkingDir\Downloads\5215C05\nefconw.exe -ArgumentList "--remove-device-node --hardware-id Root\ViGEmBus --class-guid 4D36E97D-E325-11CE-BFC1-08002BE10318" -Wait
+    Start-Process $WorkingDir\Downloads\5215C05\nefconw.exe -ArgumentList "--create-device-node --hardware-id Nefarius\ViGEmBus\Gen1 --class-name System --class-guid 4D36E97D-E325-11CE-BFC1-08002BE10318" -Wait
+    Start-Process $WorkingDir\Downloads\5215C05\nefconw.exe -ArgumentList "--install-driver --inf-path 'ViGEmBus.inf'" -Wait
+}
+
 if($isSupportedSS)
 {
     if($prefferedStreamingService -imatch "parsec") {
@@ -148,6 +158,8 @@ if($isSupportedSS)
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
     }
 }
+
+Set-Service Audiosrv -StartupType Automatic
 
 if($shouldAutoLogon -imatch "y")
 {
