@@ -10,4 +10,8 @@ foreach ($Object in $Objects) {
     }
 }
 
-Start-Process $LocalPath\$LocalFileName
+Start-Process $LocalPath\$LocalFileName -ArgumentList "\s" -Wait
+
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global" -Name "vGamingMarketplace" -PropertyType "DWord" -Value "2"
+
+Invoke-WebRequest -Uri "https://nvidia-gaming.s3.amazonaws.com/GridSwCert-Archive/GridSwCertWindows_2021_10_2.cert" -OutFile "$Env:PUBLIC\Documents\GridSwCert.txt"

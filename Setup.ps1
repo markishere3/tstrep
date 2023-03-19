@@ -1,5 +1,55 @@
 function Write-HostCenter { param($Message) Write-Host ("{0}{1}" -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message) }
 
+function Set-DefaultBrowser
+{
+    param($defaultBrowser)
+
+    $regKey      = "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\{0}\UserChoice"
+    $regKeyFtp   = $regKey -f 'ftp'
+    $regKeyHttp  = $regKey -f 'http'
+    $regKeyHttps = $regKey -f 'https'
+
+    switch -Regex ($defaultBrowser.ToLower())
+    {
+        # Internet Explorer
+        'ie|internet|explorer' {
+            Set-ItemProperty $regKeyFtp   -name ProgId IE.FTP
+            Set-ItemProperty $regKeyHttp  -name ProgId IE.HTTP
+            Set-ItemProperty $regKeyHttps -name ProgId IE.HTTPS
+            break
+        }
+        # Firefox
+        'ff|firefox' {
+            Set-ItemProperty $regKeyFtp   -name ProgId FirefoxURL
+            Set-ItemProperty $regKeyHttp  -name ProgId FirefoxURL
+            Set-ItemProperty $regKeyHttps -name ProgId FirefoxURL
+            break
+        }
+        # Google Chrome
+        'cr|google|chrome' {
+            Set-ItemProperty $regKeyFtp   -name ProgId ChromeHTML
+            Set-ItemProperty $regKeyHttp  -name ProgId ChromeHTML
+            Set-ItemProperty $regKeyHttps -name ProgId ChromeHTML
+            break
+        }
+        # Safari
+        'sa*|apple' {
+            Set-ItemProperty $regKeyFtp   -name ProgId SafariURL
+            Set-ItemProperty $regKeyHttp  -name ProgId SafariURL
+            Set-ItemProperty $regKeyHttps -name ProgId SafariURL
+            break
+        }
+        # Opera
+        'op*' {
+            Set-ItemProperty $regKeyFtp   -name ProgId Opera.Protocol
+            Set-ItemProperty $regKeyHttp  -name ProgId Opera.Protocol
+            Set-ItemProperty $regKeyHttps -name ProgId Opera.Protocol
+            break
+        }
+    } 
+
+}
+
 function isVideoControllerSupported { param($videoController) 
     if($videoController -imatch "NVIDIA Tesla T4")
     {
@@ -47,6 +97,8 @@ if(!$isSupportedSS)
 }
 
 $shouldInstallChrome = (Read-Host "Should we install Chrome for you? (y/n)").ToLower()
+
+$shouldMakeChromeDefault = (Read-Host "Should we make Chrome default for you? (y/n)").ToLower()
 
 $shouldInstallDrivers = (Read-Host "Should we install drivers for you? (y/n)").ToLower()
 
@@ -108,6 +160,11 @@ if($shouldInstallChrome -imatch "y")
     Write-Host "Chrome successfully installed!"
 }
 
+if($shouldMakeChromeDefault -imatch "y")
+{
+    Set-DefaultBrowser cr
+}
+
 if($shouldInstallSteam -imatch "y")
 {
     Write-Host "Installing Steam...."
@@ -160,6 +217,8 @@ if($isSupportedSS)
 }
 
 Set-Service Audiosrv -StartupType Automatic
+
+
 
 if($shouldAutoLogon -imatch "y")
 {
