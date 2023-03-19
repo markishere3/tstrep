@@ -219,11 +219,10 @@ if($isSupportedSS)
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
 
         Write-Host "Installing IDD drivers, this is required for Sunshine!"
-        (New-Object System.Net.WebClient).DownloadFile("https://github.com/ge9/IddSampleDriver/releases/download/0.0.1.2/IddSampleDriver.zip", "$WorkingDir\Downloads\IddSampleDriver.zip")
-        Expand-Archive $WorkingDir\Downloads\IddSampleDriver.zip -DestinationPath $WorkingDir\Downloads\IddSampleDriver
-        Copy-Item -Path $WorkingDir\Downloads\IddSampleDriver\config.txt -Destination C:\IddSampleDriver\config.txt
-        Start-Process $WorkingDir\Downloads\IddSampleDriver\installCert.bat -Wait
-        Start-Process rundll32.exe -ArgumentList "advpack.dll,LaunchINFSectionEx $WorkingDir\Downloads\IddSampleDriver\lddSampleDriver.inf,IddSampleDriver_Install,,4,N"
+        (New-Object System.Net.WebClient).DownloadFile("https://www.amyuni.com/downloads/usbmmidd_v2.zip", "$WorkingDir\Downloads\usbmmidd_v2.zip")
+        Expand-Archive $WorkingDir\Downloads\usbmmidd_v2.zip -DestinationPath $WorkingDir\Downloads
+        Start-Process  $WorkingDir\Downloads\usbmmidd_v2\deviceinstaller64.exe -ArgumentList "install usbmmidd.inf usbmmidd"
+        Start-Process  $WorkingDir\Downloads\usbmmidd_v2\deviceinstaller64.exe -ArgumentList "enableidd 1"
     }
 }
 
@@ -243,6 +242,7 @@ if($shouldAutoLogon -imatch "y")
 if($shouldAutoRestart -imatch "y")
 {
     Write-Host "Machine will now restart."
+    Start-Sleep 10
     Restart-Computer -Force
 } else {
     $shouldRestart = (Read-Host "Should we restart? (y/n)").ToLower()
