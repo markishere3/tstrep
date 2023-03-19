@@ -51,18 +51,22 @@ $shouldInstallChrome = (Read-Host "Should we install Chrome for you? (y/n)").ToL
 $shouldInstallDrivers = (Read-Host "Should we install drivers for you? (y/n)").ToLower()
 
 if($shouldInstallDrivers -imatch "y") {
-    $videoControllerName = (Read-Host "What GPU do you have? (NVIDIA Tesla T4)").ToLower()
+    $videoControllerName = (Read-Host "What GPU do you have? (NVIDIA Tesla T4/no)").ToLower()
     $supportedVideoController = isVideoControllerSupported $videoControllerName
 
-    if($shouldInstallDrivers)
-    {
-        if(!$supportedVideoController)
+    if(!($videoControllerName -imatch "no")) {
+        if($shouldInstallDrivers)
         {
-            $videoControllerName = (Get-CimInstance -ClassName win32_VideoController).name
-            $supportedVideoController = isVideoControllerSupported $videoControllerName
-            Write-Host $videoControllerName " is currently unsupported! You will need to install drivers on your own."
+            if(!$supportedVideoController)
+            {
+                $videoControllerName = (Get-CimInstance -ClassName win32_VideoController).name
+                $supportedVideoController = isVideoControllerSupported $videoControllerName
+                Write-Host $videoControllerName " is currently unsupported! You will need to install drivers on your own."
+            }
         }
     }
+
+    $shouldInstallViGEm = (Read-Host "Do you wish to install ViGEm? [For controller passthrough] (y/n)").ToLower()
 }
 
 $shouldInstallVBCable = (Read-Host "Should we install VBCable for you? [This is for audio transmission!] (y/n)").ToLower()
@@ -83,30 +87,17 @@ $AWSSECRETKEY = Read-Host "Please input your Secret Key: "
 
 $WorkingDir = (Get-Location).Path.ToString()
 
+If(-not (Test-Path -Path $WorkingDir\Downloads))
+{
+    New-Item -Path "$WorkingDir\Downloads" -ItemType Directory
+}
+
 Set-AWSCredential -AccessKey $AWSACCESSKEY -SecretKey $AWSSECRETKEY -StoreAs MyNewProfile
 Set-AWSCredential -ProfileName MyNewProfile
 
 if($shouldInstallDrivers -imatch "y")
 {
-    Start-Process ".\Steps\InstallDrivers.ps1" -Wait
-}
-
-
-if($isSupportedSS)
-{
-    if($prefferedStreamingService -imatch "parsec") {
-        Write-Host "Installing Parsec...."
-        (New-Object System.Net.WebClient).DownloadFile("https://builds.parsec.app/package/parsec-windows.exe", "$WorkingDir\Downloads\parsec-windows.exe")
-        Start-Process $WorkingDir\Downloads\parsec-windows.exe -ArgumentList '/silent /vdd' -Wait
-        Write-Host "Parsec sucessfully installed! You will need to login manually in the app."
-    }
-
-    if($prefferedStreamingService -imatch "sunshine") {
-        Write-Host "Installing Sunshine...."
-        (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
-        Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -Wait
-        Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
-    }
+    .\Steps\InstallDrivers.ps1
 }
 
 if($shouldInstallChrome -imatch "y")
@@ -138,14 +129,31 @@ if($shouldInstallVBCable -imatch "y")
     Write-Host "Installing VBCable...."
     (New-Object System.Net.WebClient).DownloadFile("https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip", "$WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip")
     Expand-Archive Downloads\VBCABLE_Driver_Pack43.zip -DestinationPath $WorkingDir\Downloads\VBCable 
-    Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_64.exe -Wait
+    Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_x64.exe -Wait
+}
+
+if($isSupportedSS)
+{
+    if($prefferedStreamingService -imatch "parsec") {
+        Write-Host "Installing Parsec...."
+        (New-Object System.Net.WebClient).DownloadFile("https://builds.parsec.app/package/parsec-windows.exe", "$WorkingDir\Downloads\parsec-windows.exe")
+        Start-Process $WorkingDir\Downloads\parsec-windows.exe -ArgumentList '/silent /vdd' -Wait
+        Write-Host "Parsec sucessfully installed! You will need to login manually in the app."
+    }
+
+    if($prefferedStreamingService -imatch "sunshine") {
+        Write-Host "Installing Sunshine...."
+        (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
+        Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -Wait
+        Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
+    }
 }
 
 if($shouldAutoLogon -imatch "y")
 {
     $RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
     Set-ItemProperty $RegPath "AutoAdminLogon" -Value "1" -type String
-    $username = Get-ItemPropertyValue $RegPath "LastUsedUsername" -type String
+    $username = Get-ItemPropertyValue $RegPath "LastUsedUsername"
     Set-ItemProperty $RegPath "DefaultUsername" -Value "$username" -type String 
     Set-ItemProperty $RegPath "DefaultPassword" -Value "$password" -type String 
 }
