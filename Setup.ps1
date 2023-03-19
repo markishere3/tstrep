@@ -81,6 +81,8 @@ if($shouldAutoLogon) {
 $AWSACCESSKEY = Read-Host "You are unfortunately required to give an access key and secret key, due to AWS having exclusive drivers. Please input your Access Key: "
 $AWSSECRETKEY = Read-Host "Please input your Secret Key: "
 
+$WorkingDir = (Get-Location).Path.ToString()
+
 Set-AWSCredential -AccessKey $AWSACCESSKEY -SecretKey $AWSSECRETKEY -StoreAs MyNewProfile
 Set-AWSCredential -ProfileName MyNewProfile
 
@@ -94,15 +96,15 @@ if($isSupportedSS)
 {
     if($prefferedStreamingService -imatch "parsec") {
         Write-Host "Installing Parsec...."
-        (New-Object System.Net.WebClient).DownloadFile("https://builds.parsec.app/package/parsec-windows.exe", "./Downloads/parsec-windows.exe")
-        Start-Process .\Downloads\parsec-windows.exe -ArgumentList '/silent /vdd' -Wait
+        (New-Object System.Net.WebClient).DownloadFile("https://builds.parsec.app/package/parsec-windows.exe", "$WorkingDir\Downloads\parsec-windows.exe")
+        Start-Process $WorkingDir\Downloads\parsec-windows.exe -ArgumentList '/silent /vdd' -Wait
         Write-Host "Parsec sucessfully installed! You will need to login manually in the app."
     }
 
     if($prefferedStreamingService -imatch "sunshine") {
         Write-Host "Installing Sunshine...."
-        (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "./Downloads/sunshine-windows-installer.exe")
-        Start-Process .\Downloads\sunshine-windows-installer.exe -Wait
+        (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
+        Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -Wait
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
     }
 }
@@ -110,33 +112,33 @@ if($isSupportedSS)
 if($shouldInstallChrome -imatch "y")
 {
     Write-Host "Installing Chrome...."
-    (New-Object System.Net.WebClient).DownloadFile("https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BADB34C44-5FAF-9B9B-F138-0D6C4BC5BC24%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe", "./Downloads/ChromeStandaloneSetup64.exe")
-    Start-Process .\Downloads\ChromeStandaloneSetup64.exe -Wait
+    (New-Object System.Net.WebClient).DownloadFile("https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BADB34C44-5FAF-9B9B-F138-0D6C4BC5BC24%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe", "$WorkingDir\Downloads\ChromeStandaloneSetup64.exe")
+    Start-Process $WorkingDir\Downloads\ChromeStandaloneSetup64.exe -Wait
     Write-Host "Chrome successfully installed!"
 }
 
 if($shouldInstallSteam -imatch "y")
 {
     Write-Host "Installing Steam...."
-    (New-Object System.Net.WebClient).DownloadFile("https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe", ".\Downloads\SteamSetup.exe")
-    Start-Process .\Downloads\SteamSetup.exe -ArgumentList "/S" -Wait
+    (New-Object System.Net.WebClient).DownloadFile("https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe", "$WorkingDir\Downloads\SteamSetup.exe")
+    Start-Process $WorkingDir\Downloads\SteamSetup.exe -ArgumentList "/S" -Wait
     Write-Host "Steam successfully installed!"
 }
 
 if($shouldInstallEpicGames -imatch "y")
 {
     Write-Host "Installing Epic Games...."
-    (New-Object System.Net.WebClient).DownloadFile("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", ".\Downloads\EpicGamesLauncherInstaller.msi")
-    msiexec.exe /i .\Downloads\EpicGamesLauncherInstaller.msi /qn
+    (New-Object System.Net.WebClient).DownloadFile("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", "$WorkingDir\Downloads\EpicGamesLauncherInstaller.msi")
+    msiexec.exe /i $WorkingDir\Downloads\EpicGamesLauncherInstaller.msi /qn
 
 }
 
 if($shouldInstallVBCable -imatch "y")
 {
     Write-Host "Installing VBCable...."
-    (New-Object System.Net.WebClient).DownloadFile("https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip", ".\Downloads\VBCABLE_Driver_Pack43.zip")
-    Expand-Archive Downloads\VBCABLE_Driver_Pack43.zip -DestinationPath .\Downloads\VBCable 
-    Start-Process .\Downloads\VBCable\VBCABLE_Setup_64.exe -Wait
+    (New-Object System.Net.WebClient).DownloadFile("https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip", "$WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip")
+    Expand-Archive Downloads\VBCABLE_Driver_Pack43.zip -DestinationPath $WorkingDir\Downloads\VBCable 
+    Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_64.exe -Wait
 }
 
 if($shouldAutoLogon -imatch "y")
