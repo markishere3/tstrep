@@ -10,7 +10,8 @@ foreach ($Object in $Objects) {
     }
 }
 
-Start-Process $LocalPath\$LocalFileName -ArgumentList "\s" -Wait
+$DLpath = Get-ChildItem -Path $LocalPath -Include *exe* -Recurse | Select-Object -ExpandProperty Name
+Start-Process -FilePath "$($LocalPath)\$dlpath" -ArgumentList "/s /n" -Wait 
 
 New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global" -Name "vGamingMarketplace" -PropertyType "DWord" -Value "2"
 
