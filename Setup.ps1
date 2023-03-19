@@ -189,7 +189,7 @@ if($shouldInstallVBCable -imatch "y")
 {
     Write-Host "Installing VBCable...."
     (New-Object System.Net.WebClient).DownloadFile("https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip", "$WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip")
-    Expand-Archive Downloads\VBCABLE_Driver_Pack43.zip -DestinationPath $WorkingDir\Downloads\VBCable 
+    Expand-Archive $WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip -DestinationPath $WorkingDir\Downloads\VBCable 
     Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_x64.exe -Wait
 }
 
@@ -217,6 +217,13 @@ if($isSupportedSS)
         (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
         Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -Wait
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
+
+        Write-Host "Installing IDD drivers, this is required for Sunshine!"
+        (New-Object System.Net.WebClient).DownloadFile("https://github.com/ge9/IddSampleDriver/releases/download/0.0.1.2/IddSampleDriver.zip", "$WorkingDir\Downloads\IddSampleDriver.zip")
+        Expand-Archive $WorkingDir\Downloads\IddSampleDriver.zip -DestinationPath $WorkingDir\Downloads\IddSampleDriver
+        Copy-Item -Path $WorkingDir\Downloads\IddSampleDriver\config.txt -Destination C:\IddSampleDriver\config.txt
+        Start-Process $WorkingDir\Downloads\IddSampleDriver\installCert.bat -Wait
+        Start-Process rundll32.exe -ArgumentList "advpack.dll,LaunchINFSectionEx $WorkingDir\Downloads\IddSampleDriver\lddSampleDriver.inf,IddSampleDriver_Install,,4,N"
     }
 }
 
