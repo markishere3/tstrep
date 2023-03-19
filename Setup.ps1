@@ -189,7 +189,7 @@ if($shouldInstallVBCable -imatch "y")
     Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_x64.exe -Wait
 }
 
-if($shouldInstallViGEm)
+if($shouldInstallViGEm -imatch "y")
 {
     (New-Object System.Net.WebClient).DownloadFile("https://github.com/ViGEm/ViGEmBus/releases/download/v1.21.442.0/ViGEmBus_1.21.442_x64_x86_arm64.exe", "$WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe")
     Start-Process $WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe -ArgumentList "/extract ViGEmBus" -Wait
