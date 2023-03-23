@@ -237,7 +237,7 @@ if($isSupportedSS)
 
 Set-Service Audiosrv -StartupType Automatic
 
-
+Set-ItemProperty "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" "DisableCAD" -Value "1" -type String 
 
 if($shouldAutoLogon -imatch "y")
 {
