@@ -118,7 +118,7 @@ if($shouldInstallDrivers -imatch "y") {
         }
     }
 
-    $shouldInstallViGEm = (Read-Host "Do you wish to install ViGEm? [For controller passthrough] (y/n)").ToLower()
+    $shouldInstallViGEm = (Read-Host "Do you wish to install ViGEm? [For controller passthrough] [BROKEN!] (y/n)").ToLower()
 }
 
 $shouldInstallVBCable = (Read-Host "Should we install VBCable for you? [This is for audio transmission!] (y/n)").ToLower()
@@ -129,14 +129,16 @@ $shouldInstallEpicGames = (Read-Host "Should we install Epic Games Launcher for 
 
 $shouldAutoRestart = (Read-Host "Should the script automatically restart for you? (y/n)").ToLower()
 
-$shouldAutoLogon = (Read-Host "Should the script setup automatic login? (y/n)").ToLower()
-if($shouldAutoLogon) {
-    $password = (Read-Host "Please provide the password to your current user, this is required for auto login: ").ToLower()
+$password = (Read-Host "You are required to enter a new password, please enter a new password").ToLower()
+
+if ($supportedVideoController) {
+    $AWSACCESSKEY = Read-Host "You are unfortunately required to give an access key and secret key, due to AWS having exclusive drivers. Please input your Access Key"
+    $AWSSECRETKEY = Read-Host "Please input your Secret Key"
+    Set-AWSCredential -AccessKey $AWSACCESSKEY -SecretKey $AWSSECRETKEY -StoreAs MyNewProfile
+    Set-AWSCredential -ProfileName MyNewProfile
 }
 
-$AWSACCESSKEY = Read-Host "You are unfortunately required to give an access key and secret key, due to AWS having exclusive drivers. Please input your Access Key: "
-$AWSSECRETKEY = Read-Host "Please input your Secret Key: "
-
+Write-Host "Please Wait!"
 $WorkingDir = (Get-Location).Path.ToString()
 
 If(-not (Test-Path -Path $WorkingDir\Downloads))
@@ -144,14 +146,18 @@ If(-not (Test-Path -Path $WorkingDir\Downloads))
     New-Item -Path "$WorkingDir\Downloads" -ItemType Directory
 }
 
-Set-AWSCredential -AccessKey $AWSACCESSKEY -SecretKey $AWSSECRETKEY -StoreAs MyNewProfile
-Set-AWSCredential -ProfileName MyNewProfile
+
+Clear-Host 
+
+Write-HostCenter "Installation Started!"
+
 
 if($shouldInstallDrivers -imatch "y")
 {
     Write-Host "Installing 7-Zip, this is required for installation!"
     (New-Object System.Net.WebClient).DownloadFile("https://7-zip.org/a/7z2201-x64.msi", "$WorkingDir/Downloads/7z2201-x64.msi")
     msiexec.exe /i $WorkingDir\Downloads\7z2201-x64.msi /qn
+    Write-Host "Installing Drivers...."
     .\Steps\InstallDrivers.ps1
     Get-PnpDevice | where {$_.friendlyname -like "Generic Non-PNP Monitor" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
     Get-PnpDevice | where {$_.friendlyname -like "Microsoft Basic Display Adapter" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
@@ -226,12 +232,6 @@ if($isSupportedSS)
         (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
         Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -ArgumentList '/qn' -Wait
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
-
-        Write-Host "Installing IDD drivers, this is required for Sunshine!"
-        (New-Object System.Net.WebClient).DownloadFile("https://www.amyuni.com/downloads/usbmmidd_v2.zip", "$WorkingDir\Downloads\usbmmidd_v2.zip")
-        Expand-Archive $WorkingDir\Downloads\usbmmidd_v2.zip -DestinationPath $WorkingDir\Downloads
-        Start-Process  $WorkingDir\Downloads\usbmmidd_v2\deviceinstaller64.exe -ArgumentList "install usbmmidd.inf usbmmidd"
-        Start-Process  $WorkingDir\Downloads\usbmmidd_v2\deviceinstaller64.exe -ArgumentList "enableidd 1"
     }
 }
 
@@ -241,11 +241,7 @@ Set-Service Audiosrv -StartupType Automatic
 
 if($shouldAutoLogon -imatch "y")
 {
-    $RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
-    Set-ItemProperty $RegPath "AutoAdminLogon" -Value "1" -type String
-    $username = Get-ItemPropertyValue $RegPath "LastUsedUsername"
-    Set-ItemProperty $RegPath "DefaultUsername" -Value "$username" -type String 
-    Set-ItemProperty $RegPath "DefaultPassword" -Value "$password" -type String 
+    net user Administrator $password
 }
 
 if($shouldAutoRestart -imatch "y")
