@@ -151,7 +151,7 @@ if($shouldInstallDrivers -imatch "y")
 {
     Write-Host "Installing 7-Zip, this is required for installation!"
     (New-Object System.Net.WebClient).DownloadFile("https://7-zip.org/a/7z2201-x64.msi", "$WorkingDir/Downloads/7z2201-x64.msi")
-    msiexec.exe /i $WorkingDir\Downloads\7z2201-x64.msi /q INSTALLDIR="C:\Program Files\7-Zip"
+    msiexec.exe /i $WorkingDir\Downloads\7z2201-x64.msi /qn
     .\Steps\InstallDrivers.ps1
     Get-PnpDevice | where {$_.friendlyname -like "Generic Non-PNP Monitor" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
     Get-PnpDevice | where {$_.friendlyname -like "Microsoft Basic Display Adapter" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
@@ -193,13 +193,15 @@ if($shouldInstallVBCable -imatch "y")
     Write-Host "Installing VBCable...."
     (New-Object System.Net.WebClient).DownloadFile("https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip", "$WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip")
     Expand-Archive $WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip -DestinationPath $WorkingDir\Downloads\VBCable 
-    Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_x64.exe -Wait
+    Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_x64.exe -ArgumentList "-i -h" -Wait
 }
 
 if($shouldInstallViGEm -imatch "y")
 {
     Write-Host "Installing Xbox 360 Drivers..."
-    (New-Object System.Net.WebClient).DownloadFile("http://web.archive.org/web/20200425215425/http://download.microsoft.com/download/6/9/4/69446ACF-E625-4CCF-8F56-58B589934CD3/Xbox360_64Eng.exe", "$WorkingDir\Downloads\Xbox360_64Eng.exe")
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -Method Get "https://drive.google.com/uc?export=download&id=1U9HphlMY8AR3oTZb9p2Y7-jbYcVRJEhp" -OutFile "Xbox360_64Eng.exe"
+    $ProgressPreference = 'Continue'
     Start-Process "C:\Program Files\7-Zip\7z.exe" -ArgumentList "$WorkingDir\Downloads\Xbox360_64Eng.exe -o$WorkingDir\Downloads\XBox360_Drivers" -Wait
     Write-Host "Installing DirectX Drivers... (Xbox 360 Drivers not installed yet!)"
     Start-Process "$WorkingDir\Downloads\XBox360_Drivers\directx\dxsetup.exe" -ArgumentList "/silent" -Wait
