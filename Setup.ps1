@@ -149,6 +149,9 @@ Set-AWSCredential -ProfileName MyNewProfile
 
 if($shouldInstallDrivers -imatch "y")
 {
+    Write-Host "Installing 7-Zip, this is required for installation!"
+    (New-Object System.Net.WebClient).DownloadFile("https://7-zip.org/a/7z2201-x64.msi", "$WorkingDir/Downloads/7z2201-x64.msi")
+    msiexec.exe /i $WorkingDir\Downloads\7z2201-x64.msi /q INSTALLDIR="C:\Program Files\7-Zip"
     .\Steps\InstallDrivers.ps1
     Get-PnpDevice | where {$_.friendlyname -like "Generic Non-PNP Monitor" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
     Get-PnpDevice | where {$_.friendlyname -like "Microsoft Basic Display Adapter" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
@@ -195,6 +198,20 @@ if($shouldInstallVBCable -imatch "y")
 
 if($shouldInstallViGEm -imatch "y")
 {
+    Write-Host "Installing Xbox 360 Drivers..."
+    (New-Object System.Net.WebClient).DownloadFile("http://web.archive.org/web/20200425215425/http://download.microsoft.com/download/6/9/4/69446ACF-E625-4CCF-8F56-58B589934CD3/Xbox360_64Eng.exe", "$WorkingDir\Downloads\Xbox360_64Eng.exe")
+    Start-Process "C:\Program Files\7-Zip\7z.exe" -ArgumentList "$WorkingDir\Downloads\Xbox360_64Eng.exe -o$WorkingDir\Downloads\XBox360_Drivers" -Wait
+    $Drivers = Get-ChildItem "$WorkingDir\Downloads\XBox360_Drivers\xbox360\setup64\files\driver\win7" -Recurse -Filter "*.inf"
+    ForEach ($Driver in $Drivers) { 
+      try {
+             PNPUtil.exe /add-driver $Driver.FullName /install 
+      }
+      Catch {
+            PNPUtil.Exe /delete-driver $Driver.Fullname /uninstall /force
+            PNPUtil.exe /add-driver $Driver.FullName /install 
+      }
+    }
+    Write-Host "Installing ViGEm...."
     (New-Object System.Net.WebClient).DownloadFile("https://github.com/ViGEm/ViGEmBus/releases/download/v1.21.442.0/ViGEmBus_1.21.442_x64_x86_arm64.exe", "$WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe")
     Start-Process $WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe -ArgumentList "/extract ViGEmBus" -Wait
     Start-Process $WorkingDir\Downloads\5215C05\nefconw.exe -ArgumentList "-remove-device-node --hardware-id Nefarius\ViGEmBus\Gen1 --class-guid 4D36E97D-E325-11CE-BFC1-08002BE10318" -Wait
