@@ -202,19 +202,7 @@ if($shouldInstallViGEm -imatch "y")
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Method Get "https://drive.google.com/uc?export=download&id=1U9HphlMY8AR3oTZb9p2Y7-jbYcVRJEhp" -OutFile "$WorkingDir\Downloads\Xbox360_64Eng.exe"
     $ProgressPreference = 'Continue'
-    Start-Process "C:\Program Files\7-Zip\7z.exe" -ArgumentList "$WorkingDir\Downloads\Xbox360_64Eng.exe -o$WorkingDir\Downloads\XBox360_Drivers" -Wait
-    Write-Host "Installing DirectX Drivers... (Xbox 360 Drivers not installed yet!)"
-    Start-Process "$WorkingDir\Downloads\XBox360_Drivers\directx\dxsetup.exe" -ArgumentList "/silent" -Wait
-    $Drivers = Get-ChildItem "$WorkingDir\Downloads\XBox360_Drivers\xbox360\setup64\files\driver\win7" -Recurse -Filter "*.inf"
-    ForEach ($Driver in $Drivers) { 
-      try {
-             PNPUtil.exe /add-driver $Driver.FullName /install 
-      }
-      Catch {
-            PNPUtil.Exe /delete-driver $Driver.Fullname /uninstall /force
-            PNPUtil.exe /add-driver $Driver.FullName /install 
-      }
-    }
+    Start-Process "$WorkingDir\Downloads\Xbox360_64Eng.exe" -Wait
     Write-Host "Installing ViGEm...."
     (New-Object System.Net.WebClient).DownloadFile("https://github.com/ViGEm/ViGEmBus/releases/download/v1.21.442.0/ViGEmBus_1.21.442_x64_x86_arm64.exe", "$WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe")
     Start-Process $WorkingDir\Downloads\ViGEmBus_1.21.442_x64_x86_arm64.exe -ArgumentList "/extract ViGEmBus" -Wait
@@ -236,7 +224,7 @@ if($isSupportedSS)
     if($prefferedStreamingService -imatch "sunshine") {
         Write-Host "Installing Sunshine...."
         (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
-        Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -ArgumentList '/silent' -Wait
+        Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -ArgumentList '/qn' -Wait
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
 
         Write-Host "Installing IDD drivers, this is required for Sunshine!"
