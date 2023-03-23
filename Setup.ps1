@@ -236,7 +236,7 @@ if($isSupportedSS)
     if($prefferedStreamingService -imatch "sunshine") {
         Write-Host "Installing Sunshine...."
         (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
-        Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -Wait
+        Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -ArgumentList '/silent' -Wait
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
 
         Write-Host "Installing IDD drivers, this is required for Sunshine!"
