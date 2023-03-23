@@ -200,7 +200,7 @@ if($shouldInstallViGEm -imatch "y")
 {
     Write-Host "Installing Xbox 360 Drivers..."
     $ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Method Get "https://drive.google.com/uc?export=download&id=1U9HphlMY8AR3oTZb9p2Y7-jbYcVRJEhp" -OutFile "Xbox360_64Eng.exe"
+    Invoke-WebRequest -Method Get "https://drive.google.com/uc?export=download&id=1U9HphlMY8AR3oTZb9p2Y7-jbYcVRJEhp" -OutFile "$WorkingDir\Downloads\Xbox360_64Eng.exe"
     $ProgressPreference = 'Continue'
     Start-Process "C:\Program Files\7-Zip\7z.exe" -ArgumentList "$WorkingDir\Downloads\Xbox360_64Eng.exe -o$WorkingDir\Downloads\XBox360_Drivers" -Wait
     Write-Host "Installing DirectX Drivers... (Xbox 360 Drivers not installed yet!)"
