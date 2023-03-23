@@ -201,6 +201,8 @@ if($shouldInstallViGEm -imatch "y")
     Write-Host "Installing Xbox 360 Drivers..."
     (New-Object System.Net.WebClient).DownloadFile("http://web.archive.org/web/20200425215425/http://download.microsoft.com/download/6/9/4/69446ACF-E625-4CCF-8F56-58B589934CD3/Xbox360_64Eng.exe", "$WorkingDir\Downloads\Xbox360_64Eng.exe")
     Start-Process "C:\Program Files\7-Zip\7z.exe" -ArgumentList "$WorkingDir\Downloads\Xbox360_64Eng.exe -o$WorkingDir\Downloads\XBox360_Drivers" -Wait
+    Write-Host "Installing DirectX Drivers... (Xbox 360 Drivers not installed yet!)"
+    Start-Process "$WorkingDir\Downloads\XBox360_Drivers\directx\dxsetup.exe" -ArgumentList "/silent"
     $Drivers = Get-ChildItem "$WorkingDir\Downloads\XBox360_Drivers\xbox360\setup64\files\driver\win7" -Recurse -Filter "*.inf"
     ForEach ($Driver in $Drivers) { 
       try {
