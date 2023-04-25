@@ -50,15 +50,6 @@ function Set-DefaultBrowser
 
 }
 
-function isVideoControllerSupported { param($videoController) 
-    if($videoController -imatch "NVIDIA Tesla T4")
-    {
-        return $true
-    } 
-
-    return $false
-}
-
 Write-HostCenter "Mark's Cloud Gaming Preperation Script!"
 Write-Host ""
 
@@ -66,12 +57,12 @@ If (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     throw "You are not admin!"
 }
 
-#Try {
-#    (Invoke-WebRequest -uri http://169.254.169.254/latest/meta-data/ -TimeoutSec 5)
-#    }
-#catch {
-#    throw "Unsupported cloud provider!"
-#}
+Try {
+    (Invoke-WebRequest -uri http://169.254.169.254/latest/meta-data/ -TimeoutSec 5)
+    }
+catch {
+    throw "Unsupported cloud provider!"
+}
 
 Write-Host "Currently, only g4dn.xlarge is supported for this script. In the future, I may try to figure it out if I can get enough help from everybody."
 
@@ -89,6 +80,7 @@ if($prefferedStreamingService -imatch "parsec")
 if($prefferedStreamingService -imatch "sunshine") 
 {
     $isSupportedSS = $true
+    Write-Host "Currently, Sunshine crashes after installing DirectX runtimes. Please keep this in mind! I do not know how to fix it!"
 }
 
 if(!$isSupportedSS)
@@ -96,49 +88,74 @@ if(!$isSupportedSS)
     Write-Host "Your service is currently not supported, you will need to install it yourself after!"
 }
 
+Start-Sleep 5
+
+Clear-Host
+
+Write-HostCenter "Applications"
 $shouldInstallChrome = (Read-Host "Should we install Chrome for you? (y/n)").ToLower()
 
-$shouldMakeChromeDefault = (Read-Host "Should we make Chrome default for you? (y/n)").ToLower()
-
-$shouldInstallDrivers = (Read-Host "Should we install drivers for you? (y/n)").ToLower()
-
-if($shouldInstallDrivers -imatch "y") {
-    $videoControllerName = (Read-Host "What GPU do you have? (NVIDIA Tesla T4/no)").ToLower()
-    $supportedVideoController = isVideoControllerSupported $videoControllerName
-
-    if(!($videoControllerName -imatch "no")) {
-        if($shouldInstallDrivers)
-        {
-            if(!$supportedVideoController)
-            {
-                $videoControllerName = (Get-CimInstance -ClassName win32_VideoController).name
-                $supportedVideoController = isVideoControllerSupported $videoControllerName
-                Write-Host $videoControllerName " is currently unsupported! You will need to install drivers on your own."
-            }
-        }
-    }
-
-    $shouldInstallViGEm = (Read-Host "Do you wish to install ViGEm? [For controller passthrough] [BROKEN!] (y/n)").ToLower()
-}
-
-$shouldInstallVBCable = (Read-Host "Should we install VBCable for you? [This is for audio transmission!] (y/n)").ToLower()
+$shouldMakeChromeDefault = (Read-Host "Should we make Chrome default for you? [BROKEN!] (y/n)").ToLower()
 
 $shouldInstallSteam = (Read-Host "Should we install Steam for you? (y/n)").ToLower()
 
 $shouldInstallEpicGames = (Read-Host "Should we install Epic Games Launcher for you? (y/n)").ToLower()
 
+$shouldInstallDiscord = (Read-Host "Should we install Discord for you? (y/n)").ToLower()
+
+Start-Sleep 2
+
+Clear-Host
+
+Write-HostCenter "Drivers"
+$shouldInstallDrivers = (Read-Host "Should we install video card drivers for you? (y/n)").ToLower()
+
+$shouldInstallVCRedist = (Read-Host "Should we install Visual C++ Redistributable for Visual Studio 2015 (x86) for you? (y/n)").ToLower()
+
+$shouldInstallViGEm = (Read-Host "Do you wish to install ViGEm? [For controller passthrough] [BROKEN!] (y/n)").ToLower()
+
+$shouldInstallVBCable = (Read-Host "Should we install VBCable for you? [This is for audio transmission!] (y/n)").ToLower()
+
+Clear-Host
+
 $shouldAutoRestart = (Read-Host "Should the script automatically restart for you? (y/n)").ToLower()
 
-$password = (Read-Host "You are required to enter a new password, please enter a new password").ToLower()
+Clear-Host
 
-if ($supportedVideoController) {
-    $AWSACCESSKEY = Read-Host "You are unfortunately required to give an access key and secret key, due to AWS having exclusive drivers. Please input your Access Key"
-    $AWSSECRETKEY = Read-Host "Please input your Secret Key"
-    Set-AWSCredential -AccessKey $AWSACCESSKEY -SecretKey $AWSSECRETKEY -StoreAs MyNewProfile
-    Set-AWSCredential -ProfileName MyNewProfile
-}
+$password = Read-Host "You are required to enter a new password, please enter a new password" -AsSecureString
 
-Write-Host "Please Wait!"
+Clear-Host
+
+$AWSACCESSKEY = Read-Host "You are unfortunately required to give an access key and secret key, due to AWS having exclusive drivers. Please input your Access Key" -AsSecureString
+
+Clear-Host
+
+$AWSSECRETKEY = Read-Host "Please input your Secret Key" -AsSecureString
+
+Clear-Host
+
+Write-HostCenter "Please wait, setting the keys!"
+
+$tmp_acskey = ConvertFrom-SecureString $AWSACCESSKEY
+
+$tmp_scrtkey = ConvertFrom-SecureString $AWSSECRETKEY
+
+Set-AWSCredential -AccessKey $tmp_acskey -SecretKey $tmp_scrtkey -StoreAs MyNewProfile
+Set-AWSCredential -ProfileName MyNewProfile
+
+Remove-Variable $tmp_acskey
+Remove-Variable $tmp_scrtkey
+Remove-Variable $AWSACCESSKEY
+Remove-Variable $AWSSECRETKEY
+
+Clear-Host
+
+Write-HostCenter "Success!"
+
+Start-Sleep 2
+
+Write-HostCenter "Checking for folders, please wait!"
+
 $WorkingDir = (Get-Location).Path.ToString()
 
 If(-not (Test-Path -Path $WorkingDir\Downloads))
@@ -154,56 +171,118 @@ Write-HostCenter "Installation Started!"
 
 if($shouldInstallDrivers -imatch "y")
 {
-    Write-Host "Installing 7-Zip, this is required for installation!"
-    (New-Object System.Net.WebClient).DownloadFile("https://7-zip.org/a/7z2201-x64.msi", "$WorkingDir/Downloads/7z2201-x64.msi")
-    msiexec.exe /i $WorkingDir\Downloads\7z2201-x64.msi /qn
-    Write-Host "Installing Drivers...."
+    Write-HostCenter "GPU Drivers"
     .\Steps\InstallDrivers.ps1
+
+    #This is from Parsec's cloud preperation tool!
+    Write-HostCenter "Disabling unnecessary adapters...."
     Get-PnpDevice | where {$_.friendlyname -like "Generic Non-PNP Monitor" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
     Get-PnpDevice | where {$_.friendlyname -like "Microsoft Basic Display Adapter" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
     Get-PnpDevice | where {$_.friendlyname -like "Google Graphics Array (GGA)" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
     Get-PnpDevice | where {$_.friendlyname -like "Microsoft Hyper-V Video" -and $_.status -eq "OK"} | Disable-PnpDevice -confirm:$false
+    Write-Host "Complete!"
+
+    Clear-Host
 }
+
+Write-HostCenter "Applications"
 
 if($shouldInstallChrome -imatch "y")
 {
-    Write-Host "Installing Chrome...."
+    Write-Host "Downloading Chrome...."
     (New-Object System.Net.WebClient).DownloadFile("https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BADB34C44-5FAF-9B9B-F138-0D6C4BC5BC24%7D%26lang%3Den%26browser%3D3%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe", "$WorkingDir\Downloads\ChromeStandaloneSetup64.exe")
+    Write-Host "Complete!"
+
+    Write-Host "Installing Chrome..."
     Start-Process $WorkingDir\Downloads\ChromeStandaloneSetup64.exe -Wait
     Write-Host "Chrome successfully installed!"
+    Write-Host ""
 }
 
 if($shouldMakeChromeDefault -imatch "y")
 {
+    Write-Host "Making chrome default is currently not functional and will be fixed in a later update."
     Set-DefaultBrowser cr
+    Write-Host ""
 }
 
 if($shouldInstallSteam -imatch "y")
 {
-    Write-Host "Installing Steam...."
+    Write-Host "Downloading Steam...."
     (New-Object System.Net.WebClient).DownloadFile("https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe", "$WorkingDir\Downloads\SteamSetup.exe")
+    Write-Host "Complete!"
+
+    Write-Host "Installing Steam..."
     Start-Process $WorkingDir\Downloads\SteamSetup.exe -ArgumentList "/S" -Wait
+
     Write-Host "Steam successfully installed!"
+
+    Write-Host ""
 }
 
 if($shouldInstallEpicGames -imatch "y")
 {
-    Write-Host "Installing Epic Games...."
+    Write-Host "Downloading Epic Games Launcher...."
     (New-Object System.Net.WebClient).DownloadFile("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", "$WorkingDir\Downloads\EpicGamesLauncherInstaller.msi")
+    Write-Host "Complete!"
+
+    Write-Host "Installing Epic Games Launcher...."
     msiexec.exe /i $WorkingDir\Downloads\EpicGamesLauncherInstaller.msi /qn
+    Write-Host "Epic Games Launcher successfully installed!"
+    Write-Host ""
+}
+
+if($shouldInstallDiscord -imatch "y")
+{
+    Write-Host "Downloading Discord...."
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -Method Get "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x86" -OutFile "$WorkingDir\Downloads\DiscordSetup.exe"
+    $ProgressPreference = 'Continue'
+    Write-Host "Complete!"
+
+    Write-Host "Installing Discord...."
+    Start-Process $WorkingDir\Downloads\DiscordSetup.exe -ArgumentList "-s" -Wait
+    Write-Host "Discord successfully installed!"
+
+    Write-Host ""
+}
+
+Start-Sleep 2
+
+Clear-Host
+
+Write-HostCenter "Drivers"
+
+if($shouldInstallVCRedist -imatch "y")
+{
+    Write-Host "Downloading Visual C++ for Visual Studio 2015 (x86)...."
+    (New-Object System.Net.WebClient).DownloadFile("https://aka.ms/vs/16/release/vc_redist.x86.exe", "$WorkingDir\Downloads\vc_redist.x86.exe")
+    Write-Host "Complete!"
+
+    Write-Host "Installing Visual C++ for Visual Studio 2015 (x86)...."
+    Start-Process $WorkingDir\Downloads\DiscordSetup.exe -ArgumentList "/install /quiet /norestart" -Wait
+    Write-Host "Visual C++ for Visual Studio 2015 (x86) successfully installed!"
+    Write-Host ""
 
 }
 
 if($shouldInstallVBCable -imatch "y")
 {
-    Write-Host "Installing VBCable...."
+    Write-Host "Downloading VBCable...."
     (New-Object System.Net.WebClient).DownloadFile("https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip", "$WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip")
+    Write-Host "Complete!"
+
+    Write-Host "Installing VBCable...."
     Expand-Archive $WorkingDir\Downloads\VBCABLE_Driver_Pack43.zip -DestinationPath $WorkingDir\Downloads\VBCable 
     Start-Process $WorkingDir\Downloads\VBCable\VBCABLE_Setup_x64.exe -ArgumentList "-i -h" -Wait
+    Write-Host "VBCable successfully installed!"
+    
+    Write-Host ""
 }
 
 if($shouldInstallViGEm -imatch "y")
 {
+    Write-Host "This is still broken, and will be fixed in a future update."
     Write-Host "Installing Xbox 360 Drivers..."
     $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest -Method Get "https://drive.google.com/uc?export=download&id=1U9HphlMY8AR3oTZb9p2Y7-jbYcVRJEhp" -OutFile "$WorkingDir\Downloads\Xbox360_64Eng.exe"
@@ -218,18 +297,29 @@ if($shouldInstallViGEm -imatch "y")
     Start-Process $WorkingDir\Downloads\5215C05\nefconw.exe -ArgumentList "--install-driver --inf-path 'ViGEmBus.inf'" -Wait
 }
 
+Start-Sleep 2
+
+Clear-Host
+
+Write-HostCenter "Streaming Services"
 if($isSupportedSS)
 {
     if($prefferedStreamingService -imatch "parsec") {
-        Write-Host "Installing Parsec...."
+        Write-Host "Downloading Parsec...."
         (New-Object System.Net.WebClient).DownloadFile("https://builds.parsec.app/package/parsec-windows.exe", "$WorkingDir\Downloads\parsec-windows.exe")
+        Write-Host "Complete!"
+
+        Write-Host "Installing Parsec..."
         Start-Process $WorkingDir\Downloads\parsec-windows.exe -ArgumentList '/silent /vdd' -Wait
         Write-Host "Parsec sucessfully installed! You will need to login manually in the app."
     }
 
     if($prefferedStreamingService -imatch "sunshine") {
-        Write-Host "Installing Sunshine...."
+        Write-Host "Downloading Sunshine...."
         (New-Object System.Net.WebClient).DownloadFile("https://github.com/LizardByte/Sunshine/releases/download/v0.18.4/sunshine-windows-installer.exe", "$WorkingDir\Downloads\sunshine-windows-installer.exe")
+        Write-Host "Complete!"
+
+        Write-Host "Installing Sunshine...."
         Start-Process $WorkingDir\Downloads\sunshine-windows-installer.exe -ArgumentList '/qn' -Wait
         Write-Host "Sunshine successfully installed! Set it up over at https://localhost:49960 when you run it."
     }
@@ -239,10 +329,7 @@ Set-Service Audiosrv -StartupType Automatic
 
 New-ItemProperty "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" "DisableCAD" -Value "1" -type String 
 
-if($shouldAutoLogon -imatch "y")
-{
-    net user Administrator $password
-}
+net user Administrator $password
 
 if($shouldAutoRestart -imatch "y")
 {
