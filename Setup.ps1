@@ -122,31 +122,22 @@ $shouldAutoRestart = (Read-Host "Should the script automatically restart for you
 
 Clear-Host
 
-$password = Read-Host "You are required to enter a new password, please enter a new password" -AsSecureString
+$password = Read-Host "You are required to enter a new password, please enter a new password" 
 
 Clear-Host
 
-$AWSACCESSKEY = Read-Host "You are unfortunately required to give an access key and secret key, due to AWS having exclusive drivers. Please input your Access Key" -AsSecureString
+$AWSACCESSKEY = Read-Host "You are unfortunately required to give an access key and secret key, due to AWS having exclusive drivers. Please input your Access Key" -
 
 Clear-Host
 
-$AWSSECRETKEY = Read-Host "Please input your Secret Key" -AsSecureString
+$AWSSECRETKEY = Read-Host "Please input your Secret Key"
 
 Clear-Host
 
 Write-HostCenter "Please wait, setting the keys!"
 
-$tmp_acskey = ConvertFrom-SecureString $AWSACCESSKEY
-
-$tmp_scrtkey = ConvertFrom-SecureString $AWSSECRETKEY
-
-Set-AWSCredential -AccessKey $tmp_acskey -SecretKey $tmp_scrtkey -StoreAs MyNewProfile
+Set-AWSCredential -AccessKey $AWSACCESSKEY -SecretKey $AWSSECRETKEY -StoreAs MyNewProfile
 Set-AWSCredential -ProfileName MyNewProfile
-
-Remove-Variable $tmp_acskey
-Remove-Variable $tmp_scrtkey
-Remove-Variable $AWSACCESSKEY
-Remove-Variable $AWSSECRETKEY
 
 Clear-Host
 
