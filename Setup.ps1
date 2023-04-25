@@ -279,7 +279,7 @@ if($shouldInstallVCRedist -imatch "y")
     Write-Host "Complete!"
 
     Write-Host "Installing Visual C++ for Visual Studio 2015 (x86)...."
-    Start-Process $WorkingDir\Downloads\DiscordSetup.exe -ArgumentList "/install /quiet /norestart" -Wait
+    Start-Process $WorkingDir\Downloads\vc_redist.x86.exe -ArgumentList "/install /quiet /norestart" -Wait
     Write-Host "Visual C++ for Visual Studio 2015 (x86) successfully installed!"
     Write-Host ""
 
